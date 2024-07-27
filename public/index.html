@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Collection Example</title>
+</head>
+
+<body>
+    <h1>Location Collection Example</h1>
+    <button id="getLocationBtn">Get Current Location</button>
+    <p id="location"></p>
+
+    <script>
+        document.getElementById('getLocationBtn').addEventListener('click', function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                document.getElementById('location').innerText = "Geolocation is not supported by this browser.";
+            }
+        });
+
+        function showPosition(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const locationInfo = `Latitude: ${latitude}, Longitude: ${longitude}`;
+            document.getElementById('location').innerText = locationInfo;
+
+            // ส่งข้อมูลตำแหน่งไปยังเซิร์ฟเวอร์
+            fetch('/save-location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Server response:', data);
+                    alert('Location saved successfully!');
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function showError(error) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById('location').innerText = "User denied the request for Geolocation.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById('location').innerText = "Location information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById('location').innerText = "The request to get user location timed out.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById('location').innerText = "An unknown error occurred.";
+                    break;
+            }
+        }
+    </script>
+</body>
+
+</html>
