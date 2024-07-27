@@ -1,10 +1,10 @@
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const mysql = require("mysql2");
 
-// สร้างแอป Express
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Middleware เพื่อ parse JSON bodies
 app.use(bodyParser.json());
@@ -12,10 +12,10 @@ app.use(express.static("public"));
 
 // ตั้งค่าการเชื่อมต่อกับฐานข้อมูล MySQL
 const connection = mysql.createConnection({
-  host: "localhost",
-  user: "root", // ใช้ชื่อผู้ใช้ของ MySQL ที่คุณตั้งค่าไว้
-  password: "password", // ใช้รหัสผ่านของ MySQL ที่คุณตั้งค่าไว้
-  database: "location_db",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 // เชื่อมต่อกับฐานข้อมูล
