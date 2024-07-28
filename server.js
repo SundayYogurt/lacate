@@ -1,39 +1,37 @@
-require("dotenv").config();
+const mysql = require("mysql2");
 const express = require("express");
 const bodyParser = require("body-parser");
-const mysql = require("mysql2");
-
+const path = require("path");
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware เพื่อ parse JSON bodies
+// ใช้ body-parser middleware
 app.use(bodyParser.json());
-app.use(express.static("public"));
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// ตั้งค่าการเชื่อมต่อกับฐานข้อมูล MySQL
-const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+// ใช้ express.static middleware สำหรับไฟล์ static
+app.use(express.static(path.join(__dirname, "public")));
+
+// Route สำหรับ root URL
+app.get("/", (req, res) => {
+  res.send("Welcome to the Location Collection API");
 });
 
-// เชื่อมต่อกับฐานข้อมูล
-connection.connect((err) => {
-  if (err) {
-    console.error("Error connecting to the database:", err);
-    return;
-  }
-  console.log("Connected to the database");
+// ตั้งค่าการเชื่อมต่อกับฐานข้อมูล MySQL (ใช้ connection pool)
+const pool = mysql.createPool({
+  connectionLimit: 10,
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "",
+  database: process.env.DB_NAME || "location_db",
 });
 
 // เส้นทาง POST เพื่อบันทึกตำแหน่ง
 app.post("/save-location", (req, res) => {
   const { latitude, longitude } = req.body;
 
-  // สร้างคำสั่ง SQL เพื่อบันทึกข้อมูล
   const sql = "INSERT INTO locations (latitude, longitude) VALUES (?, ?)";
-  connection.query(sql, [latitude, longitude], (err, results) => {
+  pool.query(sql, [latitude, longitude], (err, results) => {
     if (err) {
       console.error("Error saving location:", err);
       res
